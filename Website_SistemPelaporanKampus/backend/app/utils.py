@@ -1,36 +1,39 @@
-from datetime import datetime, timedelta
-from typing import Optional
+from datetime import datetime, timedelta, timezone
 import jwt
-from app.models.user import UserRole
+from passlib.context import CryptContext # <--- Pastikan library hashing terpakai
 
-# KUNCI RAHASIA UTAMA (Ganti dengan string random yang aman di file .env nanti)
-SECRET_KEY = "SUPER_SECRET_KEY_SISTEM_PELAPORAN_MAHASISWA_UNHAS_2026"
+# Konfigurasi hashing password menggunakan bcrypt
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+SECRET_KEY = "RAHASIA_SUPER_KAMPUS"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 1440  # Token aktif selama 1 hari (24 jam)
+ACCESS_TOKEN_EXPIRE_MINUTES = 720  # Token aktif selama 12 jam
 
-# Simulasi hashing sederhana jika belum menginstall passlib/bcrypt.
-# SANGAT DISARANKAN nanti menjalankan: pip install "passlib[bcrypt]"
-try:
-    from passlib.context import CryptContext
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    def hash_password(password: str) -> str:
-        return pwd_context.hash(password)
-    def verify_password(plain_password: str, hashed_password: str) -> bool:
-        return pwd_context.verify(plain_password, hashed_password)
-except ImportError:
-    # Fallback jika library belum siap (hanya untuk development awal)
-    def hash_password(password: str) -> str:
-        return password + "mockhash"
-    def verify_password(plain_password: str, hashed_password: str) -> bool:
-        return (plain_password + "mockhash") == hashed_password
+# ==========================================
+# 1. FUNGSI ENKRIPSI & VERIFIKASI PASSWORD
+# ==========================================
+def hash_password(password: str) -> str:
+    """Mengubah password teks biasa menjadi hash acak"""
+    return pwd_context.hash(password)
 
-# Fungsi untuk membuat JWT Token
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Mencocokkan password inputan dengan hash di database"""
+    return pwd_context.verify(plain_password, hashed_password)
+
+# ==========================================
+# 2. FUNGSI PEMBUATAN TOKEN JWT (ZONA WAKTU UTC)
+# ==========================================
+def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()
+    
+    # Menentukan waktu expired dengan timezone-aware UTC yang akurat
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    
+    # Masukkan timestamp expired ke dalam payload token
     to_encode.update({"exp": expire})
+    
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt

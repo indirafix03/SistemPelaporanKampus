@@ -1,23 +1,19 @@
-import os
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
-# Mengambil URL database dari environment variable (.env)
-# Jika belum diset, default menggunakan SQLite lokal untuk development
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./sistem_pelaporan.db")
+# 1. Ganti URL dari SQLite ke PostgreSQL
+# Default username PostgreSQL biasanya 'postgres', default port-nya '5432'
+# SILAKAN GANTI 'password_kamu' dengan password asli PostgreSQL milikmu saat install
+SQLALCHEMY_DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/sistem_pelaporan_kampus"
 
-# Jika menggunakan PostgreSQL/MySQL, kodenya tetap sama, tinggal ganti string URL di .env
-if DATABASE_URL.startswith("sqlite"):
-    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-else:
-    engine = create_engine(DATABASE_URL)
+# 2. Atur Engine untuk PostgreSQL (Untuk PostgreSQL, tidak perlu argumen 'check_same_thread')
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Base class ini akan di-inherit oleh semua model tabel kita
 Base = declarative_base()
 
-# Dependency untuk menyisipkan database session ke endpoint FastAPI
 def get_db():
     db = SessionLocal()
     try:

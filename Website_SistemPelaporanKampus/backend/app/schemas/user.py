@@ -10,6 +10,7 @@ class UserBase(BaseModel):
 # Skema saat user mendaftar (Request Body)
 class UserCreate(UserBase):
     password: str
+    role: UserRole
 
 # Skema saat mengembalikan data user (Response Body)
 class UserResponse(UserBase):
