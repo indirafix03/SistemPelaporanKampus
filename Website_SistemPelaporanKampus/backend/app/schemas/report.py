@@ -1,14 +1,13 @@
 from pydantic import BaseModel
+from typing import List, Optional
 from datetime import datetime
-from typing import Optional, List
 from app.models.report import ReportStatus, ReportPriority
 
 # ==========================================
-# 1. SKEMA UNTUK LOG / TIMELINE RIWAYAT
+# SKEMA PENDUKUNG TIMELINE & LOG
 # ==========================================
 class ReportLogResponse(BaseModel):
     id: int
-    report_id: str
     status_log: str
     catatan: Optional[str] = None
     oleh_user: str
@@ -18,50 +17,58 @@ class ReportLogResponse(BaseModel):
         from_attributes = True
 
 # ==========================================
-# 2. SKEMA UNTUK LAPORAN (REPORT)
+# SKEMA UNTUK MAHASISWA
 # ==========================================
+class MahasiswaStatsResponse(BaseModel):
+    total_laporan_bulan_ini: int
+    status_counts: dict
+    persentase_selesai_bulan_ini: float
 
-# Skema dasar laporan (Data yang umum)
-class ReportBase(BaseModel):
+class MahasiswaRecentReport(BaseModel):
+    id_laporan: str
+    fasilitas: str
+    status: ReportStatus
+    created_at: datetime
+
+class MahasiswaReportDetail(BaseModel):
+    id_laporan: str
     kategori: str
     fasilitas: str
     lokasi_spesifik: str
     deskripsi: str
-
-# Skema saat Mahasiswa membuat laporan baru (Request)
-class ReportCreate(ReportBase):
-    pass  # Foto bukti akan ditangani terpisah menggunakan Form/UploadFile di FastAPI
-
-# Skema saat Admin membuat laporan khusus (Request)
-class AdminReportCreate(ReportBase):
-    prioritas: ReportPriority
-    teknisi_nama: Optional[str] = None
-
-# Skema saat Admin mengubah status & memberikan tindakan (Request)
-class ReportUpdateStatus(BaseModel):
+    foto_urls: List[str]
+    tanggapan_admin: Optional[str] = None
     status: ReportStatus
-    prioritas: ReportPriority
-    catatan_admin: Optional[str] = None
-    teknisi_nama: Optional[str] = None
-
-# Skema lengkap saat mengirim data laporan ke Frontend (Response)
-class ReportResponse(ReportBase):
-    id: str
-    pelapor_id: int
-    status: ReportStatus
-    prioritas: Optional[ReportPriority] = None
-    teknisi_nama: Optional[str] = None
-    foto_url: Optional[str] = None
-    created_at: datetime
-    updated_at: datetime
-    logs: List[ReportLogResponse] = [] # Memastikan kelas ReportLogResponse sudah ada di atas
+    timeline_riwayat: List[ReportLogResponse]
 
     class Config:
         from_attributes = True
 
-# Skema ringkas untuk keperluan statistik di Dashboard
-class DashboardStats(BaseModel):
-    pending_count: int
-    diproses_count: int
-    selesai_count: int
-    total_count: int
+class MahasiswaHistoryResponse(BaseModel):
+    total_laporan_diselesaikan_all_time: int
+    daftar_laporan: List[MahasiswaRecentReport]
+
+# ==========================================
+# SKEMA UNTUK ADMIN
+# ==========================================
+class AdminStatsResponse(BaseModel):
+    laporan_pending: int
+    laporan_diproses: int
+    persentase_peningkatan_dari_rata_rata: float
+
+class AdminTechnicianActivity(BaseModel):
+    id_laporan: str
+    teknisi_nama: str
+    status_perbaikan: str
+    waktu_update: datetime
+
+class AdminActionRequest(BaseModel):
+    status: ReportStatus
+    prioritas: ReportPriority
+    deskripsi_tanggapan_admin: str
+
+class AdminAnalyticsResponse(BaseModel):
+    total_selesai: int
+    rerata_respon_jam: float
+    status_efisiensi_pemeliharaan: str
+    daftar_detail_selesai: List[MahasiswaRecentReport]
