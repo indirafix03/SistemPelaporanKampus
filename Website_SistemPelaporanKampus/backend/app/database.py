@@ -2,9 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# 1. Ganti URL dari SQLite ke PostgreSQL
-# Default username PostgreSQL biasanya 'postgres', default port-nya '5432'
-# SILAKAN GANTI 'password_kamu' dengan password asli PostgreSQL milikmu saat install
+
 SQLALCHEMY_DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/sistem_pelaporan_kampus"
 
 # 2. Atur Engine untuk PostgreSQL (Untuk PostgreSQL, tidak perlu argumen 'check_same_thread')

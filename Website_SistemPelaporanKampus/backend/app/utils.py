@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from typing import List, Optional
 import jwt
 from passlib.context import CryptContext # <--- Pastikan library hashing terpakai
 
@@ -7,7 +8,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 SECRET_KEY = "RAHASIA_SUPER_KAMPUS"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 720  # Token aktif selama 12 jam
+
 
 # ==========================================
 # 1. FUNGSI ENKRIPSI & VERIFIKASI PASSWORD
@@ -30,10 +31,8 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=60) 
     
-    # Masukkan timestamp expired ke dalam payload token
     to_encode.update({"exp": expire})
-    
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt

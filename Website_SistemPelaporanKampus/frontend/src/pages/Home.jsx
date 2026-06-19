@@ -1,36 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import api from '../services/api';
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 function Home() {
-  const [laporan, setLaporan] = useState([]);
+  const { isAuthenticated, role, loading } = useAuth();
 
-  useEffect(() => {
-    // Mengambil data dari FastAPI saat halaman dimuat
-    api.get('/api/laporan')
-      .then(response => {
-        setLaporan(response.data);
-      })
-      .catch(error => {
-        console.error("Gagal mengambil data laporan:", error);
-      });
-  }, []);
+  if (loading) {
+    return <div className="p-8 text-center">Loading...</div>;
+  }
 
-  return (
-    <div style={{ padding: '20px' }}>
-      <h2>Daftar Laporan Kampus</h2>
-      {laporan.length === 0 ? (
-        <p>Belum ada laporan atau server FastAPI belum dinyalakan...</p>
-      ) : (
-        <ul>
-          {laporan.map((item) => (
-            <li key={item.id}>
-              <strong>{item.judul}</strong> - <small>{item.status}</small>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
+  // Redirect berdasarkan role
+  if (isAuthenticated) {
+    if (role === 'admin') {
+      return <Navigate to="/admin/dashboard" replace />;
+    } else {
+      return <Navigate to="/mahasiswa/dashboard" replace />;
+    }
+  }
+
+  // Jika belum login, redirect ke login
+  return <Navigate to="/login" replace />;
 }
 
 export default Home;

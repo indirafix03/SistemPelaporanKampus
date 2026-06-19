@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
 from app.models.report import ReportStatus, ReportPriority
+from app.schemas.user import UserResponse
 
 # ==========================================
 # SKEMA PENDUKUNG TIMELINE & LOG
@@ -27,6 +28,9 @@ class MahasiswaStatsResponse(BaseModel):
 class MahasiswaRecentReport(BaseModel):
     id_laporan: str
     fasilitas: str
+    kategori: str
+    lokasi_spesifik: str
+    foto_url: Optional[str] = None # Tambahkan ini
     status: ReportStatus
     created_at: datetime
 
@@ -46,6 +50,7 @@ class MahasiswaReportDetail(BaseModel):
 
 class MahasiswaHistoryResponse(BaseModel):
     total_laporan_diselesaikan_all_time: int
+    total_data: int
     daftar_laporan: List[MahasiswaRecentReport]
 
 # ==========================================
@@ -72,3 +77,37 @@ class AdminAnalyticsResponse(BaseModel):
     rerata_respon_jam: float
     status_efisiensi_pemeliharaan: str
     daftar_detail_selesai: List[MahasiswaRecentReport]
+
+class ReportResponse(BaseModel):
+    id: str
+    pelapor_id: int
+    pelapor: Optional[UserResponse] = None
+    kategori: str
+    fasilitas: str
+    lokasi_spesifik: str
+    deskripsi: str
+    foto_url: Optional[str] = None
+    status: ReportStatus
+    prioritas: Optional[ReportPriority] = None
+    teknisi_nama: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class ReportUpdateStatus(BaseModel):
+    status: ReportStatus
+    prioritas: ReportPriority
+    teknisi_nama: Optional[str] = None
+    catatan_admin: Optional[str] = None
+
+class ReportListWithPagination(BaseModel):
+    total_data: int
+    daftar_laporan: List[ReportResponse]
+
+class DashboardStats(BaseModel):
+    pending_count: int
+    diproses_count: int
+    selesai_count: int
+    total_count: int

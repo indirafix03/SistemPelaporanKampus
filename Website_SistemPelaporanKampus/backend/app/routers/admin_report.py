@@ -18,12 +18,14 @@ router = APIRouter(prefix="/admin", tags=["Dashboard Admin"])
 def get_admin_stats(current_admin: User = Depends(get_current_admin), db: Session = Depends(get_db)):
     pending = db.query(Report).filter(Report.status == ReportStatus.PENDING).count()
     diproses = db.query(Report).filter(Report.status == ReportStatus.DIPROSES).count()
+    total_laporan = db.query(Report).count()
     
     # Dummy hitungan persentase peningkatan tugas kuliah
     return {
         "laporan_pending": pending,
         "laporan_diproses": diproses,
-        "persentase_peningkatan_dari_rata_rata": 4.5
+        "persentase_peningkatan_dari_rata_rata": 4.5,
+        "total_laporan": total_laporan
     }
 
 @router.get("/technicians/activities", response_model=List[AdminTechnicianActivity])

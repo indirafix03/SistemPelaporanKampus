@@ -1,14 +1,18 @@
 import uuid
 import os
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
-
+from sqlalchemy.orm import joinedload # Import joinedload
+ 
 from app.database import get_db
 from app.models.user import User, UserRole
 from app.models.report import Report, ReportLog, ReportStatus, ReportPriority
-from app.schemas.report import ReportResponse, ReportUpdateStatus, DashboardStats
+from app.schemas.report import (
+    ReportResponse, ReportUpdateStatus, DashboardStats, 
+    ReportListWithPagination
+)
 from app.deps import get_current_user, get_current_admin
 
 router = APIRouter(
@@ -165,24 +169,47 @@ def get_report_detail(
 # =====================================================================
 # 4. ENDPOINT UMUM: DAFTAR LAPORAN (DENGAN FILTER UNTUK RIWAYAT & ARSIP)
 # =====================================================================
-@router.get("/", response_model=List[ReportResponse])
+@router.get("/", response_model=ReportListWithPagination)
 def get_reports(
+    q_search: Optional[str] = Query(None),
     status_filter: Optional[ReportStatus] = None,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    print(f"DEBUG: Admin accessing /reports. Current user role: {current_user.role}")
+    print(f"DEBUG: Initial query count for all reports: {db.query(Report).count()}")
+
     query = db.query(Report)
-    
+    query = query.options(joinedload(Report.pelapor)) # Eager load pelapor
     # Jika yang mengakses adalah mahasiswa, batasi hanya melihat laporan miliknya saja
     if current_user.role == UserRole.mahasiswa:
         query = query.filter(Report.pelapor_id == current_user.id)
+    
+    # Apply search filter
+    if q_search:
+        query = query.filter(
+            (Report.id.ilike(f"%{q_search}%")) |
+            (Report.fasilitas.ilike(f"%{q_search}%")) |
+            (Report.lokasi_spesifik.ilike(f"%{q_search}%")) |
+            (Report.deskripsi.ilike(f"%{q_search}%"))
+        )
         
     # Terapkan filter status jika dikirim oleh frontend (misal filter 'SELESAI' untuk menu riwayat)
     if status_filter:
         query = query.filter(Report.status == status_filter)
         
     # Urutkan dari yang paling baru dimasukkan
-    return query.order_by(Report.created_at.desc()).all()
+    total_data = query.count()
+    print(f"DEBUG: Total data after filters (get_reports): {total_data}")
+
+    reports = query.order_by(Report.created_at.desc()).offset(skip).limit(limit).all()
+    
+    return {
+        "total_data": total_data,
+        "daftar_laporan": reports
+    }
 
 
 # =====================================================================
@@ -250,3 +277,13 @@ def get_dashboard_stats(
         "selesai_count": selesai_count,
         "total_count": total_count
     }
+
+
+# =====================================================================
+# 7. ENDPOINT DEBUGGING: LIHAT SEMUA LAPORAN (ADMIN ONLY)
+# =====================================================================
+@router.get("/all", response_model=List[ReportResponse])
+def get_all_reports(
+    db: Session = Depends(get_db), 
+    current_admin: User = Depends(get_current_admin)):
+    return db.query(Report).all()

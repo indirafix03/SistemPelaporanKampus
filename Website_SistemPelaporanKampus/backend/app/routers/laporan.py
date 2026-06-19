@@ -1,14 +1,25 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-from typing import List
-from ..database import get_db
-from ..models.laporan import LaporanModel
-from ..schemas.laporan import LaporanResponse
+# backend/app/main.py
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+# 1. Tambahkan import laporan
+from app.routers import auth, mahasiswa_report, admin_report, laporan 
 
-router = APIRouter(prefix="/api/laporan", tags=["Laporan"])
+app = FastAPI(title="Sistem Pelaporan Fasilitas Kampus")
 
-@router.get("/", response_model=List[LaporanResponse])
-def get_all_laporan(db: Session = Depends(get_db)):
-    # Mengambil semua data dari tabel laporan di PostgreSQL
-    laporan = db.query(LaporanModel).all()
-    return laporan
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(auth.router)
+app.include_router(mahasiswa_report.router)
+app.include_router(admin_report.router)
+# 2. Daftarkan router laporan di sini
+app.include_router(laporan.router) 
+
+@app.get("/")
+def root():
+    return {"message": "Backend Sistem Pelaporan Kampus Aktif"}

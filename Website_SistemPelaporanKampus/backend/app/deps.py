@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.user import User
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+# Sesuaikan dengan prefix /api yang baru ditambahkan di main.py
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 
 SECRET_KEY = "RAHASIA_SUPER_KAMPUS"
 ALGORITHM = "HS256"

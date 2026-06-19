@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from typing import List
 from app.database import get_db
 from app.models.user import User
 from app.utils import verify_password, create_access_token, hash_password
+from app.deps import get_current_admin # Import get_current_admin
 # Pastikan skema user di-import untuk proses registrasi
 from app.schemas.user import UserCreate, UserResponse, UserRole
 
@@ -17,17 +19,15 @@ def register_user(user_in: UserCreate, db: Session = Depends(get_db)):
     # Validasi apakah email sudah digunakan
     user_exists = db.query(User).filter(User.email == user_in.email).first()
     if user_exists:
-        raise HTTPException(status_code=400, detail="Email sudah terdaftar dalam sistem.")
+        raise HTTPException(status_code=400, detail="Gagal: Email ini sudah digunakan. Gunakan email lain.")
         
     # Validasi apakah NIM/NIP sudah digunakan
     identity_exists = db.query(User).filter(User.nomor_identitas == user_in.nomor_identitas).first()
     if identity_exists:
-        raise HTTPException(status_code=400, detail="NIM atau NIP sudah terdaftar.")
+        raise HTTPException(status_code=400, detail="Gagal: NIM/NIP ini sudah terdaftar.")
 
-    # Logika penentuan role otomatis berbasis string email
+    # Paksa role menjadi mahasiswa untuk registrasi publik
     role_user = UserRole.mahasiswa
-    if "admin" in user_in.email.lower():
-        role_user = UserRole.admin
 
     # Membuat user baru ke database PostgreSQL
     new_user = User(
@@ -72,3 +72,13 @@ def login(
         "token_type": "bearer",
         "role": user.role.value
     }
+
+
+# ==========================================
+# 3. ENDPOINT DEBUGGING: LIHAT SEMUA USER (ADMIN ONLY)
+# ==========================================
+@router.get("/users", response_model=List[UserResponse])
+def get_all_users(
+    db: Session = Depends(get_db), 
+    current_admin: User = Depends(get_current_admin)):
+    return db.query(User).all()
