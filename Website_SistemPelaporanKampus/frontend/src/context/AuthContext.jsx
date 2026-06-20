@@ -17,11 +17,35 @@ export function AuthProvider({ children }) {
     const storedUser = localStorage.getItem('user');
     const storedRole = localStorage.getItem('role');
 
-    if (storedToken && storedUser) {
+    if (storedToken) {
       setToken(storedToken);
-      setUser(JSON.parse(storedUser));
       setRole(storedRole);
       setIsAuthenticated(true);
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+
+      // Ambil data user terbaru dari backend
+      fetch("http://127.0.0.1:8000/api/auth/me", {
+        headers: {
+          "Authorization": `Bearer ${storedToken}`
+        }
+      })
+      .then(res => {
+        if (res.ok) return res.json();
+        throw new Error("Sesi telah berakhir");
+      })
+      .then(userData => {
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+        if (userData.role) {
+          setRole(userData.role);
+          localStorage.setItem('role', userData.role);
+        }
+      })
+      .catch(err => {
+        console.error("Gagal memperbarui profil user:", err);
+      });
     }
     setLoading(false);
   }, []);

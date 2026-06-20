@@ -6,7 +6,7 @@ const reportService = {
   getAllReports: async (statusFilter = null) => {
     try {
       const params = statusFilter ? { status: statusFilter } : {};
-      const response = await api.get('/reports', { params });
+      const response = await api.get('/api/reports', { params });
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
@@ -16,7 +16,7 @@ const reportService = {
   // Ambil detail laporan
   getReportDetail: async (reportId) => {
     try {
-      const response = await api.get(`/reports/${reportId}`);
+      const response = await api.get(`/api/reports/${reportId}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
@@ -31,7 +31,7 @@ const reportService = {
         formData.append(key, reportData[key]);
       });
 
-      const response = await api.post('/reports', formData, {
+      const response = await api.post('/api/reports', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -45,7 +45,7 @@ const reportService = {
   // Update status laporan
   updateReportStatus: async (reportId, updateData) => {
     try {
-      const response = await api.put(`/reports/${reportId}/kelola`, updateData);
+      const response = await api.put(`/api/reports/${reportId}/kelola`, updateData);
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
@@ -55,7 +55,7 @@ const reportService = {
   // Ambil dashboard stats
   getDashboardStats: async () => {
     try {
-      const response = await api.get('/reports/dashboard/stats');
+      const response = await api.get('/api/reports/dashboard/stats');
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
