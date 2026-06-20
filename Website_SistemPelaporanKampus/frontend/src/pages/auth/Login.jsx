@@ -42,7 +42,7 @@ export default function Login() {
         throw new Error(data.detail || "Login gagal");
       }
 
-      login({ email: email, name: data.role }, data.role, data.access_token);
+      login(data.user, data.role, data.access_token);
       navigate(data.role === "admin" ? "/admin/dashboard" : "/mahasiswa/dashboard");
 
     } catch (err) {

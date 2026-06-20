@@ -42,6 +42,24 @@ const authService = {
   getUserRole: () => {
     return localStorage.getItem('role');
   },
+
+  // Ganti password
+  changePassword: async (oldPassword, newPassword) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await api.put('/api/auth/change-password', {
+        old_password: oldPassword,
+        new_password: newPassword,
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
 };
 
 export default authService;

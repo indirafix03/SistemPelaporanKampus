@@ -42,8 +42,8 @@ export default function Sidebar({ role }) {
           <div
             onClick={() => navigate(currentRole === "admin" ? "/admin/dashboard" : "/mahasiswa/dashboard")}
             className={`flex items-center py-3 px-4 rounded-xl cursor-pointer text-sm transition-colors ${isActive("/admin/dashboard") || isActive("/mahasiswa/dashboard")
-                ? "bg-[#FE7C6C]/20 text-[#72140F] font-bold"
-                : "text-[#5C403C] hover:bg-gray-50 font-semibold"
+              ? "bg-[#FE7C6C]/20 text-[#72140F] font-bold"
+              : "text-[#5C403C] hover:bg-gray-50 font-semibold"
               }`}
           >
             <img
@@ -58,8 +58,8 @@ export default function Sidebar({ role }) {
           <div
             onClick={() => navigate(currentRole === "admin" ? "/admin/kirim-laporan" : "/mahasiswa/kirim-laporan")}
             className={`flex items-center py-3 px-4 rounded-xl cursor-pointer text-sm transition-colors ${isActive("/admin/kirim-laporan") || isActive("/mahasiswa/kirim-laporan")
-                ? "bg-[#FE7C6C]/20 text-[#72140F] font-bold"
-                : "text-[#5C403C] hover:bg-gray-50 font-semibold"
+              ? "bg-[#FE7C6C]/20 text-[#72140F] font-bold"
+              : "text-[#5C403C] hover:bg-gray-50 font-semibold"
               }`}
           >
             <img
@@ -74,8 +74,8 @@ export default function Sidebar({ role }) {
           <div
             onClick={() => navigate(currentRole === "admin" ? "/admin/riwayat-laporan" : "/mahasiswa/riwayat-laporan")}
             className={`flex items-center py-3 px-4 rounded-xl cursor-pointer text-sm transition-colors ${isActive("/admin/riwayat-laporan") || isActive("/mahasiswa/riwayat-laporan")
-                ? "bg-[#FE7C6C]/20 text-[#72140F] font-bold"
-                : "text-[#5C403C] hover:bg-gray-50 font-semibold"
+              ? "bg-[#FE7C6C]/20 text-[#72140F] font-bold"
+              : "text-[#5C403C] hover:bg-gray-50 font-semibold"
               }`}
           >
             <img
