@@ -23,6 +23,7 @@ export default function DashboardAdmin() {
   const [statusFilter, setStatusFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalReportsData, setTotalReportsData] = useState(0);
+  const [isSopOpen, setIsSopOpen] = useState(false);
   const limit = 3; // Limit for the main reports table
 
   const fetchDashboardData = async () => {
@@ -111,16 +112,16 @@ export default function DashboardAdmin() {
   const getStatusStyles = (status) => {
     switch (status) {
       case "PENDING":
-        return { 
-          bgStatus: "bg-[#FFDAD6] text-[#93000A]", 
-          aksiText: "Verifikasi", 
-          bgAksi: "bg-[#960006] text-white hover:bg-[#7a0005]" 
+        return {
+          bgStatus: "bg-[#FFDAD6] text-[#93000A]",
+          aksiText: "Verifikasi",
+          bgAksi: "bg-[#960006] text-white hover:bg-[#7a0005]"
         };
       case "DIPROSES":
-        return { 
-          bgStatus: "bg-[#D7E2FF] text-[#004491]", 
-          aksiText: "Update", 
-          bgAksi: "bg-[#FFE2DE] text-[#5C403C] border border-[#E5BDB8] hover:bg-[#ffd1ca]" 
+        return {
+          bgStatus: "bg-[#D7E2FF] text-[#004491]",
+          aksiText: "Update",
+          bgAksi: "bg-[#FFE2DE] text-[#5C403C] border border-[#E5BDB8] hover:bg-[#ffd1ca]"
         };
       case "SELESAI":
         return { bgStatus: "bg-emerald-100 text-emerald-800", aksiText: "Detail", bgAksi: "bg-gray-100 text-gray-700 hover:bg-gray-200" };
@@ -132,14 +133,14 @@ export default function DashboardAdmin() {
   return (
     <Layout role="admin" pageTitle="Dashboard Admin">
       <div className="flex flex-col w-full gap-8">
-        
+
         {/* HEADER DASHBOARD */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full bg-[#FFF0EE] py-4 px-6 rounded-xl border border-[#E5BDB8] shadow-sm">
           <div className="flex flex-col gap-1">
             <h1 className="text-[#960006] text-2xl font-bold">Dashboard Utama Admin</h1>
             <p className="text-[#5C403C] text-sm">Selamat datang kembali! Kelola dan verifikasi laporan fasilitas kampus di sini.</p>
           </div>
-          
+
           {/* SEARCH BAR */}
           <div className="flex items-center bg-[#FFE2DE] py-2 px-4 gap-2 rounded-xl border border-solid border-[#E5BDB8] w-full sm:w-72">
             <img
@@ -147,8 +148,8 @@ export default function DashboardAdmin() {
               className="w-[18px] h-[18px]"
               alt="Search"
             />
-            <input 
-              type="text" 
+            <input
+              type="text"
               placeholder="Cari laporan..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -159,15 +160,47 @@ export default function DashboardAdmin() {
 
         {/* STATS CARDS BAR */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
-          {/* Card 1 */}
+          {/* Card 1 - Total Laporan dengan Persentase Dinamis */}
           <div className="flex flex-col bg-white p-5 gap-3 rounded-xl border border-solid border-[#E5BDB8] shadow-sm">
             <div>
               <span className="text-[#5C403C] text-xs font-bold block mb-1">Total Laporan</span>
-              <span className="text-[#960006] text-[32px] font-bold leading-none">{loading ? "..." : stats.total_laporan}</span>
+              <span className="text-[#960006] text-[32px] font-bold leading-none">
+                {loading ? "..." : stats.total_laporan}
+              </span>
             </div>
+
             <div className="flex items-center gap-1 mt-1">
-              <img src="https://storage.googleapis.com/tagjs-prod.appspot.com/v1/0HESghFleT/mr1gbtqk_expires_30_days.png" className="w-[11px] h-[7px]" alt="Up" />
-              <span className="text-emerald-600 text-xs font-bold">+12% bln ini</span>
+              {loading ? (
+                <span className="text-gray-400 text-xs font-semibold">Memuat tren...</span>
+              ) : (
+                <>
+                  {/* Deteksi Otomatis: Jika persentase >= 0 tampilkan ikon hijau (naik), jika < 0 tampilkan ikon merah (turun) */}
+                  {stats.persentase_peningkatan_dari_rata_rata >= 0 ? (
+                    <>
+                      <img
+                        src="https://storage.googleapis.com/tagjs-prod.appspot.com/v1/0HESghFleT/mr1gbtqk_expires_30_days.png"
+                        className="w-[11px] h-[7px]"
+                        alt="Up"
+                      />
+                      <span className="text-emerald-600 text-xs font-bold">
+                        +{stats.persentase_peningkatan_dari_rata_rata}% bln ini
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      {/* Ikon panah turun (Gunakan inline SVG atau balik gambar panah bawaan menggunakan CSS 'rotate-180') */}
+                      <img
+                        src="https://storage.googleapis.com/tagjs-prod.appspot.com/v1/0HESghFleT/mr1gbtqk_expires_30_days.png"
+                        className="w-[11px] h-[7px] rotate-180"
+                        alt="Down"
+                      />
+                      <span className="text-rose-600 text-xs font-bold">
+                        {stats.persentase_peningkatan_dari_rata_rata}% bln ini
+                      </span>
+                    </>
+                  )}
+                </>
+              )}
             </div>
           </div>
 
@@ -201,8 +234,8 @@ export default function DashboardAdmin() {
           {/* Top Kontrol Tabel */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-4 px-6 gap-4 border-b border-gray-100">
             <span className="text-[#281715] text-xl font-bold">Daftar Laporan Fasilitas</span>
-            <div className="flex items-center gap-3 w-full sm:w-auto"> 
-              <select 
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="bg-[#FFE9E6] text-[#281715] text-xs py-2 px-4 rounded border border-[#E5BDB8] outline-none cursor-pointer font-medium">
@@ -247,7 +280,7 @@ export default function DashboardAdmin() {
                           <span className="font-bold text-[#960006] block">{report.id}</span>
                           <span className="text-[#916F6A] text-[11px] block mt-0.5">{formatDate(report.created_at)}</span>
                         </td>
-                        
+
                         {/* Pelapor */}
                         <td className="py-4 px-6">
                           <div className="flex items-center gap-3">
@@ -273,8 +306,8 @@ export default function DashboardAdmin() {
 
                         {/* Aksi */}
                         <td className="py-4 px-6 text-center">
-                          <button 
-                            onClick={() => navigate(`/admin/detail-laporan/${report.id}`)}
+                          <button
+                            onClick={() => navigate(`/admin/detail-laporan/${encodeURIComponent(report.id)}`)}
                             className={`py-1.5 px-4 rounded text-xs font-bold transition-all ${styles.bgAksi}`}
                           >
                             {styles.aksiText}
@@ -295,7 +328,7 @@ export default function DashboardAdmin() {
               {Math.min(currentPage * limit, totalReportsData)} dari {totalReportsData} laporan
             </span>
             <div className="flex items-center gap-1">
-              <img src="https://storage.googleapis.com/tagjs-prod.appspot.com/v1/0HESghFleT/h1uwo2s5_expires_30_days.png" 
+              <img src="https://storage.googleapis.com/tagjs-prod.appspot.com/v1/0HESghFleT/h1uwo2s5_expires_30_days.png"
                 className={`w-[23px] h-7 cursor-pointer ${currentPage === 1 ? "opacity-30 cursor-not-allowed" : ""}`} alt="Prev"
                 onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)} />
               {[...Array(Math.ceil(totalReportsData / limit))].map((_, i) => (
@@ -304,7 +337,7 @@ export default function DashboardAdmin() {
                   {i + 1}
                 </button>
               ))}
-              <img src="https://storage.googleapis.com/tagjs-prod.appspot.com/v1/0HESghFleT/ugwzdc0q_expires_30_days.png" 
+              <img src="https://storage.googleapis.com/tagjs-prod.appspot.com/v1/0HESghFleT/ugwzdc0q_expires_30_days.png"
                 className={`w-[23px] h-7 cursor-pointer ${currentPage >= Math.ceil(totalReportsData / limit) ? "opacity-30 cursor-not-allowed" : ""}`} alt="Next"
                 onClick={() => currentPage < Math.ceil(totalReportsData / limit) && setCurrentPage(currentPage + 1)} />
             </div>
@@ -320,9 +353,9 @@ export default function DashboardAdmin() {
               <p className="text-red-100 text-sm leading-relaxed">
                 Pastikan setiap laporan memiliki bukti foto yang valid sebelum diproses oleh teknisi lapangan.
               </p>
-              <button 
-                onClick={() => alert("Membuka SOP...")}
-                className="bg-white text-[#960006] font-bold text-xs py-2 px-5 rounded mt-2 self-start hover:bg-red-50 transition-colors"
+              <button
+                onClick={() => setIsSopOpen(true)}
+                className="bg-white text-[#960006] font-bold text-xs py-2 px-5 rounded mt-2 self-start hover:bg-red-50 transition-colors focus:ring-2 focus:ring-white"
               >
                 Lihat SOP
               </button>
@@ -358,6 +391,87 @@ export default function DashboardAdmin() {
         </div>
 
       </div>
+
+      {/* MODAL SOP PANDUAN VERIFIKASI */}
+      {isSopOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-xl border border-[#E5BDB8] shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col animate-fade-up">
+
+            {/* Modal Header */}
+            <div className="bg-[#FFF0EE] px-6 py-4 border-b border-[#E5BDB8] flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <svg className="w-6 h-6 text-[#960006]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h3 className="text-[#960006] text-lg font-bold">Standard Operating Procedure (SOP) Verifikasi</h3>
+              </div>
+              <button
+                onClick={() => setIsSopOpen(false)}
+                className="text-[#916F6A] hover:text-[#960006] font-bold text-2xl font-sans"
+              >
+                &times;
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 overflow-y-auto flex-grow flex flex-col gap-6 text-sm text-[#281715]">
+              <p className="text-[#5C403C] leading-relaxed font-medium">
+                Panduan resmi bagi Admin dalam memproses dan mengelola laporan fasilitas di lingkungan kampus:
+              </p>
+
+              <ol className="flex flex-col gap-4 list-decimal pl-5 leading-relaxed">
+                <li className="font-semibold text-[#960006]">
+                  <span className="text-[#281715]">Verifikasi Bukti Kerusakan</span>
+                  <p className="text-gray-600 font-medium text-xs mt-1">
+                    Setiap laporan dari mahasiswa wajib diverifikasi lampiran fotonya untuk memastikan kerusakan tersebut nyata, relevan dengan deskripsi, dan berlokasi di area kampus.
+                  </p>
+                </li>
+                <li className="font-semibold text-[#960006]">
+                  <span className="text-[#281715]">Penentuan Skala Prioritas</span>
+                  <div className="grid grid-cols-1 gap-2 mt-2">
+                    <div className="flex items-start gap-2 bg-gray-50 p-2 rounded border border-gray-150 text-xs font-normal">
+                      <span className="px-1.5 py-0.5 bg-gray-100 text-gray-700 font-bold rounded border border-gray-200 shrink-0">RENDAH (Low)</span>
+                      <p className="text-gray-500 font-medium">Kerusakan minor/estetika yang tidak menghambat proses perkuliahan (contoh: laci meja goyang, dinding kotor).</p>
+                    </div>
+                    <div className="flex items-start gap-2 bg-amber-50/50 p-2 rounded border border-amber-150 text-xs font-normal">
+                      <span className="px-1.5 py-0.5 bg-amber-100 text-amber-800 font-bold rounded border border-amber-200 shrink-0">SEDANG (Medium)</span>
+                      <p className="text-gray-600 font-medium">Kerusakan fungsional yang cukup mengganggu kenyamanan tetapi perkuliahan masih bisa berjalan (contoh: AC kurang dingin, kursi retak).</p>
+                    </div>
+                    <div className="flex items-start gap-2 bg-red-50/50 p-2 rounded border border-red-150 text-xs font-normal">
+                      <span className="px-1.5 py-0.5 bg-red-100 text-red-800 font-bold rounded border border-red-200 shrink-0">TINGGI (High) / TINGKAT DARURAT</span>
+                      <p className="text-gray-700 font-medium">Kerusakan fatal atau darurat yang mengancam keselamatan atau menghentikan perkuliahan (contoh: proyektor utama mati total, korsleting kabel berbau hangus, pipa utama pecah).</p>
+                    </div>
+                  </div>
+                </li>
+                <li className="font-semibold text-[#960006]">
+                  <span className="text-[#281715]">Penugasan Teknisi & Perubahan Status</span>
+                  <p className="text-gray-600 font-medium text-xs mt-1">
+                    Pilih teknisi yang relevan melalui direktori teknisi. Ubah status laporan dari <span className="font-bold text-[#960006]">PENDING</span> menjadi <span className="font-bold text-blue-750 font-semibold text-blue-700 font-sans">DIPROSES</span>, masukkan nama teknisi, serta tambahkan catatan estimasi waktu penyelesaian agar pelapor mendapatkan pembaruan otomatis di dashboard mereka.
+                  </p>
+                </li>
+                <li className="font-semibold text-[#960006]">
+                  <span className="text-[#281715]">Penyelesaian & Arsip (SELESAI)</span>
+                  <p className="text-gray-600 font-medium text-xs mt-1">
+                    Setelah tim lapangan menyelesaikan perbaikan, lakukan pengecekan langsung atau mintalah bukti foto hasil pengerjaan. Jika sudah tuntas, ubah status laporan menjadi <span className="font-bold text-emerald-750 font-semibold text-emerald-700 font-sans">SELESAI</span> untuk mengarsipkannya secara permanen.
+                  </p>
+                </li>
+              </ol>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-gray-50 px-6 py-3 border-t border-gray-150 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsSopOpen(false)}
+                className="px-5 py-2 bg-[#960006] text-white hover:bg-[#72140F] rounded-lg text-xs font-bold transition-all shadow-sm focus:ring-2 focus:ring-red-400"
+              >
+                Pahami SOP
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }

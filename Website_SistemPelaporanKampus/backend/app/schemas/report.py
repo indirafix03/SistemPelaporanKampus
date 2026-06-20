@@ -60,6 +60,7 @@ class AdminStatsResponse(BaseModel):
     laporan_pending: int
     laporan_diproses: int
     persentase_peningkatan_dari_rata_rata: float
+    total_laporan: int
 
 class AdminTechnicianActivity(BaseModel):
     id_laporan: str
@@ -92,6 +93,7 @@ class ReportResponse(BaseModel):
     teknisi_nama: Optional[str] = None
     created_at: datetime
     updated_at: datetime
+    logs: List[ReportLogResponse] = []
 
     class Config:
         from_attributes = True

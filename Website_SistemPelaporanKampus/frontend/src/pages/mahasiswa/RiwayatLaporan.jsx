@@ -199,7 +199,7 @@ export default function RiwayatLaporan() {
                       <td className="py-4 px-6">{getStatusBadge(report.status)}</td>
                       <td className="py-4 px-6 text-right">
                         <button
-                          onClick={() => navigate(`/mahasiswa/detail-laporan/${report.id_laporan}`)}
+                          onClick={() => navigate(`/mahasiswa/detail-laporan/${encodeURIComponent(report.id_laporan)}`)}
                           className="text-[#A53A2F] hover:text-[#960006] font-bold text-sm inline-flex items-center gap-1"
                         >
                           <span>Lihat Detail</span>

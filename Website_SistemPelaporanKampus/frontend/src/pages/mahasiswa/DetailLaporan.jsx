@@ -16,7 +16,7 @@ export default function DetailLaporan() {
     const fetchDetail = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`http://127.0.0.1:8000/api/mahasiswa/reports/${report_id}`, {
+        const response = await fetch(`http://127.0.0.1:8000/api/mahasiswa/reports/${encodeURIComponent(report_id)}`, {
           headers: {
             "Authorization": `Bearer ${token}`
           }

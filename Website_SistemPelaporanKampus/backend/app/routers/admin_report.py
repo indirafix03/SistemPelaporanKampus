@@ -20,11 +20,31 @@ def get_admin_stats(current_admin: User = Depends(get_current_admin), db: Sessio
     diproses = db.query(Report).filter(Report.status == ReportStatus.DIPROSES).count()
     total_laporan = db.query(Report).count()
     
-    # Dummy hitungan persentase peningkatan tugas kuliah
+    now = datetime.now()
+    
+    # Awal bulan berjalan (1 Juni 2026)
+    start_of_this_month = datetime(now.year, now.month, 1)
+    laporan_bulan_ini = db.query(Report).filter(Report.created_at >= start_of_this_month).count()
+    
+    # Menghitung rentang tanggal untuk bulan lalu (Mei 2026)
+    first_day_of_this_month = now.replace(day=1)
+    last_day_of_last_month = first_day_of_this_month - timedelta(days=1)
+    start_of_last_month = last_day_of_last_month.replace(day=1)
+    
+    laporan_bulan_lalu = db.query(Report).filter(
+        Report.created_at >= start_of_last_month,
+        Report.created_at <= last_day_of_last_month
+    ).count()
+    
+    if laporan_bulan_lalu == 0:
+        persentase_tren = 0.0
+    else:
+        persentase_tren = round(((laporan_bulan_ini - laporan_bulan_lalu) / laporan_bulan_lalu) * 100, 1)
+
     return {
         "laporan_pending": pending,
         "laporan_diproses": diproses,
-        "persentase_peningkatan_dari_rata_rata": 4.5,
+        "persentase_peningkatan_dari_rata_rata": persentase_tren,
         "total_laporan": total_laporan
     }
 

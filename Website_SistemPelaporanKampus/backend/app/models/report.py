@@ -11,10 +11,9 @@ class ReportStatus(str, enum.Enum):
     DIBATALKAN = "DIBATALKAN"
 
 class ReportPriority(str, enum.Enum):
-    LOW = "LOW"
-    MEDIUM = "MEDIUM"
-    HIGH = "HIGH"
-    CRITICAL = "CRITICAL"
+    RENDAH = "RENDAH"
+    SEDANG = "SEDANG"
+    TINGGI = "TINGGI"
 
 class Report(Base):
     __tablename__ = "reports"

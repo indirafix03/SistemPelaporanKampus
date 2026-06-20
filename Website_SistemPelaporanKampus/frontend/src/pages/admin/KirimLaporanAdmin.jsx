@@ -1,27 +1,88 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../../components/Layout";
+import { useAuth } from "../../context/AuthContext";
 
 export default function KirimLaporanAdmin() {
   const navigate = useNavigate();
+  const { token } = useAuth();
 
   // State untuk form input
   const [kategori, setKategori] = useState("");
+  const [fasilitas, setFasilitas] = useState("");
   const [lokasi, setLokasi] = useState("");
   const [deskripsi, setDeskripsi] = useState("");
-  const [prioritas, setPrioritas] = useState("Medium");
+  const [prioritas, setPrioritas] = useState("SEDANG");
   const [teknisi, setTeknisi] = useState("");
-  const [foto, setFoto] = useState([]);
+  const [foto, setFoto] = useState(null);
+  
+  // State UI
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const techniciansList = [
+    { nama: "Budi Santoso", bidang: "AC & Pendingin" },
+    { nama: "Agus Mulyono", bidang: "Kelistrikan" },
+    { nama: "Heri Jatmiko", bidang: "Mebel & Perabot" },
+    { nama: "Rian Setiawan", bidang: "Sanitasi & Toilet" },
+    { nama: "Fajar Pratama", bidang: "IT & Elektronik" }
+  ];
+
+  // Handler file change
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setFoto(e.target.files[0]);
+    }
+  };
 
   // Handler pengiriman form
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!kategori || !lokasi || !deskripsi) {
-      alert("Mohon lengkapi detail kerusakan terlebih dahulu!");
+    setError("");
+
+    if (!kategori || !fasilitas || !lokasi || !deskripsi) {
+      setError("Mohon lengkapi seluruh detail kerusakan terlebih dahulu!");
       return;
     }
-    alert(`Laporan Berhasil Dikirim!\nPrioritas: ${prioritas}\nTeknisi: ${teknisi || "Belum ditentukan"}`);
-    navigate("/admin/dashboard");
+
+    setLoading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("kategori", kategori.toUpperCase());
+      formData.append("fasilitas", fasilitas);
+      formData.append("lokasi_spesifik", lokasi);
+      formData.append("deskripsi", deskripsi);
+      formData.append("prioritas", prioritas);
+      if (teknisi) {
+        formData.append("teknisi_nama", teknisi);
+      }
+      if (foto) {
+        formData.append("foto", foto);
+      }
+
+      const response = await fetch("http://127.0.0.1:8000/api/reports/admin-create", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || "Gagal mengirim laporan internal.");
+      }
+
+      alert(`Laporan Staf Berhasil Dibuat!\nID Laporan: ${data.id}`);
+      navigate("/admin/dashboard");
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Terjadi kesalahan saat menyambung ke server.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -31,7 +92,7 @@ export default function KirimLaporanAdmin() {
         {/* HEADER FORM */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full bg-[#FFF0EE] py-4 px-6 rounded-xl border border-[#E5BDB8] shadow-sm">
           <div className="flex flex-col gap-1">
-            <h1 className="text-[#281715] text-2xl font-bold">Buat Laporan Khusus Admin</h1>
+            <h1 className="text-[#960006] text-2xl font-bold">Buat Laporan Khusus Admin</h1>
             <p className="text-[#5C403C] text-sm">
               Input temuan kerusakan fasilitas secara mandiri untuk penugasan cepat teknisi lapangan.
             </p>
@@ -42,17 +103,22 @@ export default function KirimLaporanAdmin() {
           </div>
         </div>
 
+        {/* FEEDBACK ERROR */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-lg text-sm font-medium">
+            {error}
+          </div>
+        )}
+
         {/* SECTION DETAIL & PARAMETER PENUGASAN */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start w-full">
           
           {/* SISI KIRI: DETAIL KERUSAKAN */}
           <div className="lg:col-span-2 bg-white p-6 rounded-xl border border-[#E5BDB8] shadow-sm flex flex-col gap-6">
             <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
-              <img
-                src="https://storage.googleapis.com/tagjs-prod.appspot.com/v1/0HESghFleT/zql7p62i_expires_30_days.png"
-                className="w-5 h-5"
-                alt="icon-detail"
-              />
+              <svg className="w-5 h-5 text-[#281715]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
               <h2 className="text-[#281715] text-xl font-bold">Detail Kerusakan</h2>
             </div>
 
@@ -66,22 +132,33 @@ export default function KirimLaporanAdmin() {
                   className="bg-[#FFF8F7] text-[#281715] text-sm p-3 rounded border border-[#E5BDB8] outline-none cursor-pointer focus:border-[#960006]"
                 >
                   <option value="">Pilih Kategori...</option>
-                  <option value="Kelistrikan">Kelistrikan & Lampu</option>
-                  <option value="Pendingin Ruangan">AC / Pendingin Ruangan</option>
-                  <option value="Mebel">Kursi, Meja & Papan Tulis</option>
-                  <option value="Sanitasi">Sanitasi & Toilet</option>
-                  <option value="Fasilitas Umum">Gedung / Infrastruktur</option>
+                  <option value="Fasilitas Kelas">Fasilitas Kelas</option>
+                  <option value="Laboratorium">Laboratorium</option>
+                  <option value="Toilet">Toilet / Saniter</option>
+                  <option value="Fasilitas Umum">Fasilitas Umum</option>
                 </select>
               </div>
 
-              {/* Lokasi Spesifik */}
+              {/* Nama Item / Fasilitas */}
               <div className="flex flex-col gap-1.5">
+                <label className="text-[#5C403C] text-xs font-bold">Nama Fasilitas / Kerusakan</label>
+                <input
+                  type="text"
+                  value={fasilitas}
+                  onChange={(e) => setFasilitas(e.target.value)}
+                  placeholder="Contoh: AC Bocor, Proyektor Buram"
+                  className="bg-[#FFF8F7] text-[#281715] text-sm p-3 rounded border border-[#E5BDB8] outline-none focus:border-[#960006]"
+                />
+              </div>
+
+              {/* Lokasi Spesifik */}
+              <div className="flex flex-col gap-1.5 sm:col-span-2">
                 <label className="text-[#5C403C] text-xs font-bold">Lokasi Spesifik</label>
                 <input
                   type="text"
                   value={lokasi}
                   onChange={(e) => setLokasi(e.target.value)}
-                  placeholder="Gedung, Lantai, No Ruang..."
+                  placeholder="Contoh: Gedung Perkulihan A, Lantai 2, Ruang 203"
                   className="bg-[#FFF8F7] text-[#281715] text-sm p-3 rounded border border-[#E5BDB8] outline-none focus:border-[#960006]"
                 />
               </div>
@@ -110,19 +187,18 @@ export default function KirimLaporanAdmin() {
                 <span className="text-[#960006] text-xs font-bold tracking-wider">SKALA PRIORITAS</span>
               </div>
               
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2">
                 {[
-                  { name: "Low", style: "border-gray-300 text-gray-700 checked:bg-gray-100" },
-                  { name: "Medium", style: "border-yellow-500 text-yellow-800 bg-yellow-50" },
-                  { name: "High", style: "border-orange-500 text-orange-800" },
-                  { name: "Critical", style: "border-red-600 text-red-800" }
+                  { value: "RENDAH", name: "Rendah (Low)" },
+                  { value: "SEDANG", name: "Sedang (Medium)" },
+                  { value: "TINGGI", name: "Tinggi (High)" }
                 ].map((item) => (
                   <button
                     type="button"
-                    key={item.name}
-                    onClick={() => setPrioritas(item.name)}
+                    key={item.value}
+                    onClick={() => setPrioritas(item.value)}
                     className={`py-2 px-3 text-xs font-bold rounded-lg border transition-all text-center ${
-                      prioritas === item.name
+                      prioritas === item.value
                         ? "bg-[#960006] text-white border-[#960006] shadow-sm"
                         : "bg-white border-gray-200 text-[#281715] hover:bg-gray-50"
                     }`}
@@ -144,17 +220,17 @@ export default function KirimLaporanAdmin() {
                   className="bg-[#FFF8F7] text-[#281715] text-sm p-3 rounded border border-[#E5BDB8] outline-none cursor-pointer focus:border-[#960006] w-full"
                 >
                   <option value="">Pilih Teknisi Terdekat...</option>
-                  <option value="Budi">Budi (Teknisi AC)</option>
-                  <option value="Agus">Agus (Teknisi Listrik)</option>
-                  <option value="Siti">Siti (Biro Sarpras Gdg A)</option>
+                  {techniciansList.map((t) => (
+                    <option key={t.nama} value={t.nama}>
+                      {t.nama} ({t.bidang})
+                    </option>
+                  ))}
                 </select>
 
                 <div className="flex items-start bg-[#FFF8F7] p-3 gap-3 rounded border border-dashed border-[#E5BDB8]">
-                  <img
-                    src="https://storage.googleapis.com/tagjs-prod.appspot.com/v1/0HESghFleT/qq2bx2gx_expires_30_days.png"
-                    className="w-4 h-5 mt-0.5 shrink-0"
-                    alt="info"
-                  />
+                  <svg className="w-4 h-5 mt-0.5 shrink-0 text-[#5C403C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
                   <p className="text-[#5C403C] text-[11px] font-medium leading-relaxed">
                     Penugasan kerja akan dikirim secara instan ke sistem internal teknisi setelah form disubmit.
                   </p>
@@ -168,41 +244,49 @@ export default function KirimLaporanAdmin() {
         {/* SECTION UNGHAH FOTO */}
         <div className="bg-white p-6 rounded-xl border border-[#E5BDB8] shadow-sm flex flex-col gap-4 w-full">
           <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
-            <img
-              src="https://storage.googleapis.com/tagjs-prod.appspot.com/v1/0HESghFleT/99jtll3r_expires_30_days.png"
-              className="w-5 h-4"
-              alt="icon-upload"
-            />
+            <svg className="w-5 h-5 text-[#281715]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
             <h2 className="text-[#281715] text-xl font-bold">Unggah Bukti Foto</h2>
           </div>
 
           <div className="flex flex-wrap items-center gap-4 mt-2">
             {/* Tombol Picu Upload */}
             <label className="flex flex-col items-center justify-center py-6 px-8 rounded-xl border-2 border-dashed border-[#E5BDB8] hover:bg-gray-50/50 cursor-pointer transition-colors">
-              <img
-                src="https://storage.googleapis.com/tagjs-prod.appspot.com/v1/0HESghFleT/o59oibzl_expires_30_days.png"
-                className="w-5 h-4 mb-2"
-                alt="add-img"
+              <svg className="w-6 h-6 mb-2 text-[#5C403C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+              </svg>
+              <span className="text-[#5C403C] text-xs font-bold">
+                {foto ? "Ubah Foto" : "Tambah Foto"}
+              </span>
+              <input 
+                type="file" 
+                className="hidden" 
+                accept="image/*" 
+                onChange={handleFileChange}
               />
-              <span className="text-[#5C403C] text-xs font-bold">Tambah Foto</span>
-              <input type="file" multiple className="hidden" accept="image/*" />
             </label>
 
-            {/* Thumbnail Pratinjau Foto Statis */}
-            <div className="relative border border-gray-200 rounded-xl overflow-hidden p-1 bg-gray-50">
-              <img
-                src="https://storage.googleapis.com/tagjs-prod.appsheet.com/v1/0HESghFleT/jszvp51t_expires_30_days.png"
-                className="w-24 h-24 object-cover rounded-lg"
-                alt="preview-1"
-              />
-            </div>
-            <div className="relative border border-gray-200 rounded-xl overflow-hidden p-1 bg-gray-50">
-              <img
-                src="https://storage.googleapis.com/tagjs-prod.appspot.com/v1/0HESghFleT/tr5ya7e0_expires_30_days.png"
-                className="w-24 h-24 object-cover rounded-lg"
-                alt="preview-2"
-              />
-            </div>
+            {/* Thumbnail Pratinjau Foto */}
+            {foto && (
+              <div className="relative border border-gray-200 rounded-xl overflow-hidden p-1 bg-gray-50 flex flex-col items-center justify-center">
+                <div className="w-24 h-24 relative">
+                  <img
+                    src={URL.createObjectURL(foto)}
+                    className="w-full h-full object-cover rounded-lg"
+                    alt="preview"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setFoto(null)}
+                    className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center font-bold text-xs shadow-md"
+                  >
+                    &times;
+                  </button>
+                </div>
+                <span className="text-[10px] text-gray-500 truncate max-w-[90px] mt-1">{foto.name}</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -217,9 +301,10 @@ export default function KirimLaporanAdmin() {
           </button>
           <button
             type="submit"
-            className="bg-[#960006] text-white py-2.5 px-8 rounded-xl text-sm font-bold shadow-md hover:bg-[#7a0005] transition-colors"
+            disabled={loading}
+            className="bg-[#960006] text-white py-2.5 px-8 rounded-xl text-sm font-bold shadow-md hover:bg-[#7a0005] disabled:bg-gray-400 transition-colors"
           >
-            Submit & Tugaskan
+            {loading ? "Menyimpan Laporan..." : "Submit & Tugaskan"}
           </button>
         </div>
 
