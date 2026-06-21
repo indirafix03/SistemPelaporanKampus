@@ -377,12 +377,23 @@ export default function DetailLaporanAdmin() {
               <div className="flex flex-col gap-2">
                 <span className="text-[#5C403C] text-xs font-bold uppercase tracking-wider">Lampiran Foto Bukti</span>
                 {report.foto_url ? (
-                  <div className="w-full bg-[#ffe9e6] rounded-lg overflow-hidden border border-[#E5BDB8] max-h-80 flex items-center justify-center">
-                    <img
-                      src={`http://127.0.0.1:8000${report.foto_url}`}
-                      alt="Bukti foto kerusakan fasilitas"
-                      className="w-full h-auto max-h-80 object-cover object-center hover:scale-[1.02] transition-transform duration-350"
-                    />
+                  <div className={`grid ${report.foto_url.split(",").length === 1 ? "grid-cols-1" : "grid-cols-2"} gap-2 p-2 w-full bg-[#ffe9e6] rounded-lg border border-[#E5BDB8]`}>
+                    {report.foto_url.split(",").map((url, idx) => {
+                      const fullUrl = url.startsWith("http")
+                        ? url
+                        : `http://127.0.0.1:8000${url.startsWith("/") ? "" : "/"}${url}`;
+                      return (
+                        <img
+                          key={idx}
+                          src={fullUrl}
+                          alt={`Bukti foto ${idx + 1}`}
+                          className="w-full h-auto max-h-80 object-cover object-center hover:scale-[1.02] transition-transform duration-350 rounded border border-gray-150"
+                          onError={(e) => {
+                            e.target.src = "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/tsysz2q6QH/7w73l09f_expires_30_days.png";
+                          }}
+                        />
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="w-full h-32 bg-gray-50 border border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-400 gap-2">

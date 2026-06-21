@@ -75,16 +75,18 @@ async def create_report(
     # Proses simpan file foto
     foto_url = None
     if files:
-        # Untuk saat ini, kita asumsikan hanya satu file yang diunggah dari frontend KirimLaporan.jsx
-        # Jika ingin mendukung multi-file, perlu perubahan di frontend dan cara penyimpanan di backend
-        file = files[0] 
-        file_extension = file.filename.split(".")[-1]
-        unique_filename = f"{uuid.uuid4()}.{file_extension}"
-        file_path = os.path.join(UPLOAD_DIR, unique_filename)
-        
-        with open(file_path, "wb") as buffer:
-            buffer.write(await file.read())
-        foto_url = f"/{file_path}" # Simpan jalur relatif untuk diakses via static files
+        valid_files = [f for f in files if f.filename]
+        if valid_files:
+            uploaded_urls = []
+            for file in valid_files:
+                file_extension = file.filename.split(".")[-1]
+                unique_filename = f"{uuid.uuid4()}.{file_extension}"
+                file_path = os.path.join(UPLOAD_DIR, unique_filename)
+                
+                with open(file_path, "wb") as buffer:
+                    buffer.write(await file.read())
+                uploaded_urls.append(f"/{file_path}")
+            foto_url = ",".join(uploaded_urls)
 
     new_report = Report(
         id=rand_id,

@@ -99,18 +99,23 @@ async def admin_create_report(
     deskripsi: str = Form(...),
     prioritas: ReportPriority = Form(...),
     teknisi_nama: Optional[str] = Form(None),
-    foto: Optional[UploadFile] = File(None),
+    files: List[UploadFile] = File(None),
     db: Session = Depends(get_db),
     current_admin: User = Depends(get_current_admin)
 ):
     foto_url = None
-    if foto:
-        file_extension = foto.filename.split(".")[-1]
-        unique_filename = f"{uuid.uuid4()}.{file_extension}"
-        file_path = os.path.join(UPLOAD_DIR, unique_filename)
-        with open(file_path, "wb") as buffer:
-            buffer.write(await foto.read())
-        foto_url = f"/{file_path}"
+    if files:
+        valid_files = [f for f in files if f.filename]
+        if valid_files:
+            uploaded_urls = []
+            for file in valid_files:
+                file_extension = file.filename.split(".")[-1]
+                unique_filename = f"{uuid.uuid4()}.{file_extension}"
+                file_path = os.path.join(UPLOAD_DIR, unique_filename)
+                with open(file_path, "wb") as buffer:
+                    buffer.write(await file.read())
+                uploaded_urls.append(f"/{file_path}")
+            foto_url = ",".join(uploaded_urls)
 
     report_id = generate_report_id(db)
 

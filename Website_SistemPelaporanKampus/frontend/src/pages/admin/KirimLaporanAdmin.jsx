@@ -14,7 +14,7 @@ export default function KirimLaporanAdmin() {
   const [deskripsi, setDeskripsi] = useState("");
   const [prioritas, setPrioritas] = useState("SEDANG");
   const [teknisi, setTeknisi] = useState("");
-  const [foto, setFoto] = useState(null);
+  const [fotos, setFotos] = useState([]);
   
   // State UI
   const [loading, setLoading] = useState(false);
@@ -30,8 +30,8 @@ export default function KirimLaporanAdmin() {
 
   // Handler file change
   const handleFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setFoto(e.target.files[0]);
+    if (e.target.files) {
+      setFotos((prev) => [...prev, ...Array.from(e.target.files)]);
     }
   };
 
@@ -57,8 +57,10 @@ export default function KirimLaporanAdmin() {
       if (teknisi) {
         formData.append("teknisi_nama", teknisi);
       }
-      if (foto) {
-        formData.append("foto", foto);
+      if (fotos && fotos.length > 0) {
+        fotos.forEach((f) => {
+          formData.append("files", f);
+        });
       }
 
       const response = await fetch("http://127.0.0.1:8000/api/reports/admin-create", {
@@ -257,34 +259,41 @@ export default function KirimLaporanAdmin() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
               </svg>
               <span className="text-[#5C403C] text-xs font-bold">
-                {foto ? "Ubah Foto" : "Tambah Foto"}
+                {fotos.length > 0 ? "Tambah Foto" : "Tambah Foto"}
               </span>
               <input 
                 type="file" 
                 className="hidden" 
                 accept="image/*" 
+                multiple
                 onChange={handleFileChange}
               />
             </label>
 
             {/* Thumbnail Pratinjau Foto */}
-            {foto && (
-              <div className="relative border border-gray-200 rounded-xl overflow-hidden p-1 bg-gray-50 flex flex-col items-center justify-center">
-                <div className="w-24 h-24 relative">
-                  <img
-                    src={URL.createObjectURL(foto)}
-                    className="w-full h-full object-cover rounded-lg"
-                    alt="preview"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setFoto(null)}
-                    className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center font-bold text-xs shadow-md"
-                  >
-                    &times;
-                  </button>
-                </div>
-                <span className="text-[10px] text-gray-500 truncate max-w-[90px] mt-1">{foto.name}</span>
+            {fotos.length > 0 && (
+              <div className="flex flex-wrap gap-3">
+                {fotos.map((f, index) => (
+                  <div key={index} className="relative border border-gray-200 rounded-xl overflow-hidden p-1 bg-gray-50 flex flex-col items-center justify-center">
+                    <div className="w-24 h-24 relative">
+                      <img
+                        src={URL.createObjectURL(f)}
+                        className="w-full h-full object-cover rounded-lg"
+                        alt={`preview ${index}`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFotos(fotos.filter((_, idx) => idx !== index));
+                        }}
+                        className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center font-bold text-xs shadow-md"
+                      >
+                        &times;
+                      </button>
+                    </div>
+                    <span className="text-[10px] text-gray-500 truncate max-w-[90px] mt-1">{f.name}</span>
+                  </div>
+                ))}
               </div>
             )}
           </div>
