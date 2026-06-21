@@ -12,7 +12,7 @@ export default function KirimLaporan() {
   const [fasilitas, setFasilitas] = useState("");
   const [lokasi, setLokasi] = useState("");
   const [deskripsi, setDeskripsi] = useState("");
-  const [foto, setFoto] = useState(null);
+  const [fotos, setFotos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -34,8 +34,10 @@ export default function KirimLaporan() {
       formData.append("fasilitas", fasilitas);
       formData.append("lokasi_spesifik", lokasi);
       formData.append("deskripsi", deskripsi);
-      if (foto) { // Backend mengharapkan 'files' sebagai list, meskipun hanya satu file
-        formData.append("files", foto);
+      if (fotos && fotos.length > 0) {
+        fotos.forEach((f) => {
+          formData.append("files", f);
+        });
       }
 
       const response = await fetch("http://127.0.0.1:8000/api/mahasiswa/reports", {
@@ -64,8 +66,8 @@ export default function KirimLaporan() {
 
   // Fungsi menangkap file saat user memilih foto bukti
   const handleFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setFoto(e.target.files[0]);
+    if (e.target.files) {
+      setFotos((prev) => [...prev, ...Array.from(e.target.files)]);
     }
   };
 
@@ -159,12 +161,13 @@ export default function KirimLaporan() {
 
           {/* Input Elemen: Drag & Drop / Klik Area File Upload */}
           <div className="flex flex-col gap-1.5 w-full">
-            <label className="text-[#5C403C] text-xs font-bold">Unggah Foto Bukti</label>
+            <label className="text-[#5C403C] text-xs font-bold">Unggah Foto Bukti (Bisa pilih lebih dari 1)</label>
             <label className="flex flex-col items-center justify-center w-full bg-[#FFF0EE] py-6 rounded-lg border-2 border-dashed border-[#E5BDB8] cursor-pointer hover:bg-[#FFFBBF]/20 transition-all">
               <input 
                 type="file" 
                 accept="image/*" 
                 className="hidden" 
+                multiple
                 onChange={handleFileChange}
               />
               <img
@@ -173,12 +176,39 @@ export default function KirimLaporan() {
                 alt="Upload File Icon"
               />
               <span className="text-[#5C403C] text-sm font-semibold text-center px-4">
-                {foto ? `File Terpilih: ${foto.name}` : "Klik atau tarik foto ke sini"}
+                {fotos.length > 0 ? `${fotos.length} Foto Terpilih` : "Klik atau tarik foto-foto ke sini"}
               </span>
               <span className="text-[#916F6A] text-xs font-bold mt-0.5">
-                Format JPG, PNG (Maks. 5MB)
+                Format JPG, PNG (Maks. 5MB per file)
               </span>
             </label>
+
+            {/* Thumbnail Pratinjau Foto */}
+            {fotos.length > 0 && (
+              <div className="flex flex-wrap gap-3 mt-3">
+                {fotos.map((f, index) => (
+                  <div key={index} className="relative border border-gray-200 rounded-xl overflow-hidden p-1 bg-gray-50 flex flex-col items-center justify-center">
+                    <div className="w-20 h-20 relative">
+                      <img
+                        src={URL.createObjectURL(f)}
+                        className="w-full h-full object-cover rounded-lg"
+                        alt={`preview ${index}`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFotos(fotos.filter((_, idx) => idx !== index));
+                        }}
+                        className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center font-bold text-xs shadow-md"
+                      >
+                        &times;
+                      </button>
+                    </div>
+                    <span className="text-[9px] text-gray-500 truncate max-w-[80px] mt-1">{f.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Aksi Form: Tombol Kirim */}
