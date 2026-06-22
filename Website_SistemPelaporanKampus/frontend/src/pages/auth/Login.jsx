@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import unhasImage from "../../assets/unhas.jpg";
+import FooterInfo from "../../components/FooterInfo";
 
 export default function Login() {
     // 1. State untuk form input, error, dan loading
@@ -216,25 +217,7 @@ export default function Login() {
                 </div>
             </main>
 
-            {/* FOOTER */}
-            <footer className="w-full bg-white p-8 border-t border-solid border-gray-100">
-                <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
-                    <span className="text-[#916F6A] text-sm font-bold">
-                        © 2026 Sistem Pelaporan Fasilitas Kampus. Hak Cipta Dilindungi.
-                    </span>
-                    <div className="flex flex-wrap justify-center gap-6 text-[#5C403C] font-bold text-sm">
-                        <span className="cursor-pointer hover:text-[#960006] hover:underline transition-colors">
-                            Panduan Pengguna
-                        </span>
-                        <span className="cursor-pointer hover:text-[#960006] hover:underline transition-colors">
-                            Pusat Bantuan
-                        </span>
-                        <span className="cursor-pointer hover:text-[#960006] hover:underline transition-colors">
-                            Kebijakan Privasi
-                        </span>
-                    </div>
-                </div>
-            </footer>
+            <FooterInfo />
         </div>
     );
 }
