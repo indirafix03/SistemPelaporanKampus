@@ -63,7 +63,7 @@ export default function KirimLaporanAdmin() {
         });
       }
 
-      const response = await fetch("http://127.0.0.1:8000/api/reports/admin-create", {
+      const response = await fetch("http://127.0.0.1:8000/api/admin/reports/create", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`

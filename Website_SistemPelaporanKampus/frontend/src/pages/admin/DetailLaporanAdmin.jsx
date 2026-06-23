@@ -113,7 +113,7 @@ export default function DetailLaporanAdmin() {
     setSuccessMessage("");
     setError("");
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/reports/${encodeURIComponent(id)}/kelola`, {
+      const res = await fetch(`http://127.0.0.1:8000/api/admin/reports/${encodeURIComponent(id)}/action`, {
         method: "PUT",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -123,7 +123,7 @@ export default function DetailLaporanAdmin() {
           status: statusInput,
           prioritas: priorityInput,
           teknisi_nama: teknisiInput || null,
-          catatan_admin: catatanInput || null
+          deskripsi_tanggapan_admin: catatanInput || null
         })
       });
 
