@@ -132,33 +132,43 @@ export default function MahasiswaDashboard() {
             </div>
             
             <div className="p-5 flex flex-col gap-4">
-              {recentReport ? (
-                <>
-                  <div className="w-full h-48 md:h-64 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-                    <img
-                      src={recentReport.foto_url ? `http://127.0.0.1:8000${recentReport.foto_url}` : "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/0HESghFleT/ax6ohu4z_expires_30_days.png"}
-                      className="w-full h-full object-cover"
-                      alt="Foto Kerusakan"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <h4 className="text-[#281715] text-base font-bold">{recentReport.fasilitas}</h4>
-                        <p className="text-[#5C403C] text-sm mt-1 line-clamp-2">
-                          ID Laporan: {recentReport.id_laporan}
-                        </p>
+              {recentReport ? (() => {
+                const fotoUrls = recentReport.foto_url ? recentReport.foto_url.split(",") : [];
+                const firstFoto = fotoUrls.length > 0 ? fotoUrls[0] : "";
+                const imageUrl = firstFoto
+                  ? (firstFoto.startsWith("http") ? firstFoto : `http://127.0.0.1:8000${firstFoto.startsWith("/") ? "" : "/"}${firstFoto}`)
+                  : "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/0HESghFleT/ax6ohu4z_expires_30_days.png";
+                return (
+                  <>
+                    <div className="w-full h-48 md:h-64 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                      <img
+                        src={imageUrl}
+                        className="w-full h-full object-cover"
+                        alt="Foto Kerusakan"
+                        onError={(e) => {
+                          e.target.src = "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/0HESghFleT/ax6ohu4z_expires_30_days.png";
+                        }}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <h4 className="text-[#281715] text-base font-bold">{recentReport.fasilitas}</h4>
+                          <p className="text-[#5C403C] text-sm mt-1 line-clamp-2">
+                            ID Laporan: {recentReport.id_laporan}
+                          </p>
+                        </div>
+                        <span className="bg-[#FFDAD6] text-[#93000A] text-[11px] font-bold py-1 px-3 rounded-full shrink-0 uppercase">
+                          {recentReport.status}
+                        </span>
                       </div>
-                      <span className="bg-[#FFDAD6] text-[#93000A] text-[11px] font-bold py-1 px-3 rounded-full shrink-0 uppercase">
-                        {recentReport.status}
-                      </span>
+                      <div className="text-[#916F6A] text-xs font-medium mt-1">
+                        Dilaporkan pada {formatDate(recentReport.created_at)}
+                      </div>
                     </div>
-                    <div className="text-[#916F6A] text-xs font-medium mt-1">
-                      Dilaporkan pada {formatDate(recentReport.created_at)}
-                    </div>
-                  </div>
-                </>
-              ) : (
+                  </>
+                );
+              })() : (
                 <div className="py-10 text-center text-[#5C403C] font-medium italic">
                   {loading ? "Memuat data..." : "Belum ada laporan yang dikirim."}
                 </div>

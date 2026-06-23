@@ -18,6 +18,7 @@ export default function RiwayatLaporanAdmin() {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [avgResponseTime, setAvgResponseTime] = useState(0);
   const limit = 4; // limit per page
 
   const fetchHistory = async () => {
@@ -53,6 +54,18 @@ export default function RiwayatLaporanAdmin() {
         setTotalData(kategoriFilter !== "Semua Kategori" ? list.length : data.total_data);
       } else {
         setError(data.detail || "Gagal mengambil riwayat laporan.");
+      }
+
+      // Fetch analytics untuk rata-rata waktu respons secara dinamis
+      const analyticsRes = await fetch("http://127.0.0.1:8000/api/admin/reports/analytics", {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+      if (analyticsRes.ok) {
+        const analyticsData = await analyticsRes.json();
+        setAvgResponseTime(analyticsData.rerata_respon_jam);
       }
     } catch (err) {
       console.error(err);
@@ -152,7 +165,9 @@ export default function RiwayatLaporanAdmin() {
             </div>
             <div>
               <span className="text-[#5C403C] text-sm block mb-0.5">Respons Perbaikan</span>
-              <span className="text-[#281715] text-[32px] font-bold leading-none">4.5 Jam</span>
+              <span className="text-[#281715] text-[32px] font-bold leading-none">
+                {loading ? "..." : `${avgResponseTime} Jam`}
+              </span>
             </div>
           </div>
 

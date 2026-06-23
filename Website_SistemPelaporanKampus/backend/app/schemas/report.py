@@ -71,7 +71,8 @@ class AdminTechnicianActivity(BaseModel):
 class AdminActionRequest(BaseModel):
     status: ReportStatus
     prioritas: ReportPriority
-    deskripsi_tanggapan_admin: str
+    teknisi_nama: Optional[str] = None
+    deskripsi_tanggapan_admin: Optional[str] = None
 
 class AdminAnalyticsResponse(BaseModel):
     total_selesai: int

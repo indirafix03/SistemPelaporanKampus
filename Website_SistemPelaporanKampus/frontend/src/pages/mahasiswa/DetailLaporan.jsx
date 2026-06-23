@@ -161,10 +161,10 @@ export default function DetailLaporan() {
   let fotoList = [];
   if (report.foto_urls && Array.isArray(report.foto_urls)) {
     fotoList = report.foto_urls;
-  } else if (report.foto_url) {
-    fotoList = [report.foto_url];
+  } else if (report.foto_url && typeof report.foto_url === "string") {
+    fotoList = report.foto_url.split(",").filter(url => url.trim() !== "");
   } else if (typeof report.foto === "string") {
-    fotoList = [report.foto];
+    fotoList = report.foto.split(",").filter(url => url.trim() !== "");
   }
 
   const BASE_URL = "http://127.0.0.1:8000";
